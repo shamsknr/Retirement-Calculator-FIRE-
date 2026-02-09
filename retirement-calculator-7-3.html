@@ -1,0 +1,1277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Retirement Calculator(FIRE)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen p-4 sm:p-8">
+    <div class="max-w-7xl mx-auto">
+        <div class="bg-white rounded-2xl shadow-2xl p-6 sm:p-8 mb-6">
+            <!-- Header -->
+            <div class="flex items-center gap-3 mb-6">
+                <svg class="w-10 h-10 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+                <h1 class="text-3xl sm:text-4xl font-bold text-gray-800">Retirement Calculator(FIRE)</h1>
+            </div>
+
+            <!-- Name Field -->
+            <div class="mb-6">
+                <div class="flex flex-col md:flex-row gap-4 items-start md:items-end">
+                    <div class="flex-1">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Your Name</label>
+                        <input type="text" id="name" placeholder="Enter your name" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-lg">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Import Data</label>
+                        <input type="file" id="excelImport" accept=".xlsx,.xls" class="hidden">
+                        <button onclick="document.getElementById('excelImport').click()" class="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg shadow-lg transition-colors duration-200 flex items-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                            </svg>
+                            Import from Excel
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Input Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                <!-- Personal Information -->
+                <div class="bg-gradient-to-br from-indigo-50 to-indigo-100 p-5 rounded-xl">
+                    <div class="flex items-center gap-2 mb-4">
+                        <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        <h2 class="text-lg font-semibold text-gray-700">Personal Info</h2>
+                    </div>
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600 mb-1">Job/Profession</label>
+                            <input type="text" id="job" placeholder="e.g., Software Engineer" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                            <p class="text-xs text-gray-500 mt-1">Your current occupation</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600 mb-1">Current Age</label>
+                            <input type="number" id="currentAge" value="45" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                            <p class="text-xs text-gray-500 mt-1">Your age today</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600 mb-1">Retirement Age</label>
+                            <input type="number" id="retirementAge" value="60" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                            <p class="text-xs text-gray-500 mt-1">When you plan to stop working (typically 58-65)</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600 mb-1">Life Expectancy</label>
+                            <input type="number" id="lifeExpectancy" value="75" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                            <p class="text-xs text-gray-500 mt-1">Expected lifespan (avg. in India: 70-85 years)</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Current Investments -->
+                <div class="bg-gradient-to-br from-green-50 to-green-100 p-5 rounded-xl">
+                    <div class="flex items-center gap-2 mb-4">
+                        <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                        </svg>
+                        <h2 class="text-lg font-semibold text-gray-700">Current Investments</h2>
+                    </div>
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600 mb-1">Fixed Deposits (₹)</label>
+                            <input type="number" id="currentFD" value="500000" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500">
+                            <p class="text-xs text-gray-500 mt-1">Total value of all FDs you currently have</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600 mb-1">Stocks & ETF (₹)</label>
+                            <input type="number" id="currentStocks" value="300000" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500">
+                            <p class="text-xs text-gray-500 mt-1">Current value of your stocks & ETF portfolio</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600 mb-1">Mutual Funds (₹)</label>
+                            <input type="number" id="currentMF" value="400000" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500">
+                            <p class="text-xs text-gray-500 mt-1">Current value of all mutual fund investments</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600 mb-1">Cryptocurrency (₹)</label>
+                            <input type="number" id="currentCrypto" value="0" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500">
+                            <p class="text-xs text-gray-500 mt-1">Current value of cryptocurrency holdings (BTC, ETH, etc.)</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Monthly Investments (SIP & RD) -->
+                <div class="bg-gradient-to-br from-teal-50 to-teal-100 p-5 rounded-xl">
+                    <div class="flex items-center gap-2 mb-4">
+                        <svg class="w-5 h-5 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                        </svg>
+                        <h2 class="text-lg font-semibold text-gray-700">Monthly Investments</h2>
+                    </div>
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600 mb-1">Monthly SIP (₹)</label>
+                            <input type="number" id="monthlySIP" value="0" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500">
+                            <p class="text-xs text-gray-500 mt-1">Systematic Investment Plan - fixed monthly MF investment</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600 mb-1">Monthly RD (₹)</label>
+                            <input type="number" id="monthlyRD" value="0" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500">
+                            <p class="text-xs text-gray-500 mt-1">Recurring Deposit - fixed monthly bank deposit</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600 mb-1">SIP Annual Increase (%)</label>
+                            <input type="number" step="0.1" id="sipIncrement" value="10" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500">
+                            <p class="text-xs text-gray-500 mt-1">How much you'll increase SIP each year (recommended: 10-15%)</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600 mb-1">RD Annual Increase (%)</label>
+                            <input type="number" step="0.1" id="rdIncrement" value="5" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500">
+                            <p class="text-xs text-gray-500 mt-1">How much you'll increase RD each year (recommended: 5-10%)</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Monthly Finances -->
+                <div class="bg-gradient-to-br from-orange-50 to-orange-100 p-5 rounded-xl">
+                    <div class="flex items-center gap-2 mb-4">
+                        <svg class="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                        </svg>
+                        <h2 class="text-lg font-semibold text-gray-700">Monthly Finances</h2>
+                    </div>
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600 mb-1">Monthly Business Income/Salary (₹)</label>
+                            <input type="number" id="monthlyIncome" value="80000" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500">
+                            <p class="text-xs text-gray-500 mt-1">Your current monthly salary or business income</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600 mb-1">Monthly Rental Income (₹)</label>
+                            <input type="number" id="monthlyRental" value="0" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500">
+                            <p class="text-xs text-gray-500 mt-1">Income from property rent (if any)</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600 mb-1">Monthly Expense (₹)</label>
+                            <input type="number" id="monthlyExpense" value="50000" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500">
+                            <p class="text-xs text-gray-500 mt-1">Total monthly household expenses today</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600 mb-1">Savings Rate (%)</label>
+                            <input type="number" id="savingsRate" value="30" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500">
+                            <p class="text-xs text-gray-500 mt-1">% of income you save each month (recommended: 20-40%)</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Expected Returns -->
+                <div class="bg-gradient-to-br from-blue-50 to-blue-100 p-5 rounded-xl">
+                    <div class="flex items-center gap-2 mb-4">
+                        <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <h2 class="text-lg font-semibold text-gray-700">Expected Returns (%)</h2>
+                    </div>
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600 mb-1">FD Rate</label>
+                            <input type="number" step="0.1" id="fdRate" value="7" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                            <p class="text-xs text-gray-500 mt-1">Expected annual return from Fixed Deposits (typically 6-8%)</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600 mb-1">RD Rate</label>
+                            <input type="number" step="0.1" id="rdRate" value="7" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                            <p class="text-xs text-gray-500 mt-1">Expected annual return from Recurring Deposits (typically 6-8%)</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600 mb-1">Stock & ETF Return</label>
+                            <input type="number" step="0.1" id="stockReturn" value="12" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                            <p class="text-xs text-gray-500 mt-1">Expected annual return from stocks & ETF (historically 10-15%)</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600 mb-1">MF Return</label>
+                            <input type="number" step="0.1" id="mfReturn" value="14" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                            <p class="text-xs text-gray-500 mt-1">Expected annual return from Mutual Funds (typically 12-15%)</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600 mb-1">Cryptocurrency Return</label>
+                            <input type="number" step="0.1" id="cryptoReturn" value="15" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                            <p class="text-xs text-gray-500 mt-1">Expected annual return from crypto (high risk, volatile: 10-30%+)</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600 mb-1">Monthly Savings Return</label>
+                            <input type="number" step="0.1" id="savingsReturn" value="8" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                            <p class="text-xs text-gray-500 mt-1">Expected return on your monthly savings from income (6-10%)</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Other Parameters -->
+                <div class="bg-gradient-to-br from-purple-50 to-purple-100 p-5 rounded-xl">
+                    <div class="flex items-center gap-2 mb-4">
+                        <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                        </svg>
+                        <h2 class="text-lg font-semibold text-gray-700">Other Parameters</h2>
+                    </div>
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600 mb-1">Inflation Rate (%)</label>
+                            <input type="number" step="0.1" id="inflation" value="6" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500">
+                            <p class="text-xs text-gray-500 mt-1">Expected annual inflation (India avg: 5-7%)</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600 mb-1">Post-Retirement Expense (%)</label>
+                            <input type="number" id="postRetirementExpense" value="70" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500">
+                            <p class="text-xs text-gray-500 mt-1">% of current expenses needed after retirement. Set 60-70% if frugal, 80-100% if comfortable. Many costs reduce (commute, work expenses, EMIs) but healthcare increases.</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600 mb-1">Annual Salary Increment (%)</label>
+                            <input type="number" step="0.1" id="salaryIncrement" value="5" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500">
+                            <p class="text-xs text-gray-500 mt-1">Expected yearly salary increase (typical: 5-10%)</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600 mb-1">Annual Rental Increment (%)</label>
+                            <input type="number" step="0.1" id="rentalIncrement" value="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500">
+                            <p class="text-xs text-gray-500 mt-1">Expected yearly rental income increase (typical: 3-5%)</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Calculate Button -->
+            <div class="flex justify-center gap-4 mb-8">
+                <button onclick="calculateRetirement()" class="flex items-center gap-3 px-10 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white text-lg font-bold rounded-xl shadow-2xl transition-all duration-200 transform hover:scale-105">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                    </svg>
+                    Calculate Retirement Plan
+                </button>
+                <button onclick="clearAllData()" class="flex items-center gap-3 px-10 py-4 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white text-lg font-bold rounded-xl shadow-2xl transition-all duration-200 transform hover:scale-105">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                    Clear All Data
+                </button>
+            </div>
+
+            <!-- Results Section (Hidden Initially) -->
+            <div id="resultsSection" style="display: none;">
+                <!-- Download Buttons -->
+                <div class="flex flex-wrap gap-4 mb-8 justify-center">
+                    <button onclick="downloadExcel()" class="flex items-center gap-2 px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg shadow-lg transition-colors duration-200">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        Download Excel Report
+                    </button>
+                    <button onclick="downloadPDF()" class="flex items-center gap-2 px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg shadow-lg transition-colors duration-200">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                        </svg>
+                        Download PDF Report
+                    </button>
+                </div>
+
+                <!-- Results Grid -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Key Metrics -->
+                    <div class="space-y-4">
+                        <div id="statusCard" class="p-6 rounded-xl">
+                            <h3 class="text-xl font-bold mb-4 text-gray-800">Retirement Status</h3>
+                            <div class="space-y-3" id="metricsContent"></div>
+                            <div id="statusMessage" class="mt-4 p-4 rounded-lg"></div>
+                        </div>
+
+                        <!-- Portfolio Breakdown -->
+                        <div class="bg-gray-50 p-6 rounded-xl">
+                            <h3 class="text-xl font-bold mb-4 text-gray-800">Portfolio at Retirement</h3>
+                            <canvas id="pieChart" width="400" height="250"></canvas>
+                            <div id="portfolioLegend" class="mt-4 space-y-2"></div>
+                        </div>
+                    </div>
+
+                    <!-- Projection Chart -->
+                    <div class="bg-gray-50 p-6 rounded-xl">
+                        <h3 class="text-xl font-bold mb-4 text-gray-800">Wealth Projection</h3>
+                        <canvas id="lineChart" width="400" height="400"></canvas>
+                        <div class="mt-4 text-sm text-gray-600 space-y-1" id="chartNotes"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tips Section -->
+        <div class="bg-white rounded-xl shadow-lg p-6">
+            <h3 class="text-lg font-semibold text-gray-700 mb-3">💡 Tips for Better Retirement Planning</h3>
+            <ul class="space-y-2 text-gray-600">
+                <li>• Start early to benefit from compound interest</li>
+                <li>• Diversify your portfolio across FDs, stocks, and mutual funds</li>
+                <li>• Review and rebalance your investments annually</li>
+                <li>• Consider inflation when planning for long-term expenses</li>
+                <li>• Build an emergency fund equivalent to 6-12 months of expenses</li>
+                <li>• Consult a financial advisor for personalized advice</li>
+            </ul>
+        </div>
+
+        <!-- Developer Credit -->
+        <div class="mt-6 text-center">
+            <div class="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl shadow-md p-6">
+                <p class="text-gray-700 text-sm mb-2">
+                    <span class="font-semibold text-indigo-600">Developed and Designed by</span>
+                </p>
+                <p class="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                    Shamsudeen EP
+                </p>
+                <p class="text-gray-500 text-xs mt-2">
+                    Comprehensive Retirement Planning Calculator
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let calculatedResults = null;
+        let pieChartInstance = null;
+        let lineChartInstance = null;
+
+        function getInputs() {
+            return {
+                name: document.getElementById('name').value,
+                currentAge: parseFloat(document.getElementById('currentAge').value) || 0,
+                retirementAge: parseFloat(document.getElementById('retirementAge').value) || 0,
+                lifeExpectancy: parseFloat(document.getElementById('lifeExpectancy').value) || 0,
+                currentFD: parseFloat(document.getElementById('currentFD').value) || 0,
+                currentStocks: parseFloat(document.getElementById('currentStocks').value) || 0,
+                currentMF: parseFloat(document.getElementById('currentMF').value) || 0,
+                currentCrypto: parseFloat(document.getElementById('currentCrypto').value) || 0,
+                monthlySIP: parseFloat(document.getElementById('monthlySIP').value) || 0,
+                monthlyRD: parseFloat(document.getElementById('monthlyRD').value) || 0,
+                sipIncrement: parseFloat(document.getElementById('sipIncrement').value) || 0,
+                rdIncrement: parseFloat(document.getElementById('rdIncrement').value) || 0,
+                monthlyIncome: parseFloat(document.getElementById('monthlyIncome').value) || 0,
+                monthlyRental: parseFloat(document.getElementById('monthlyRental').value) || 0,
+                monthlyExpense: parseFloat(document.getElementById('monthlyExpense').value) || 0,
+                fdRate: parseFloat(document.getElementById('fdRate').value) || 0,
+                rdRate: parseFloat(document.getElementById('rdRate').value) || 0,
+                stockReturn: parseFloat(document.getElementById('stockReturn').value) || 0,
+                mfReturn: parseFloat(document.getElementById('mfReturn').value) || 0,
+                cryptoReturn: parseFloat(document.getElementById('cryptoReturn').value) || 0,
+                savingsReturn: parseFloat(document.getElementById('savingsReturn').value) || 0,
+                inflation: parseFloat(document.getElementById('inflation').value) || 0,
+                postRetirementExpense: parseFloat(document.getElementById('postRetirementExpense').value) || 0,
+                savingsRate: parseFloat(document.getElementById('savingsRate').value) || 0,
+                salaryIncrement: parseFloat(document.getElementById('salaryIncrement').value) || 0,
+                rentalIncrement: parseFloat(document.getElementById('rentalIncrement').value) || 0
+            };
+        }
+
+        function formatCurrency(value) {
+            if (value >= 10000000) return `₹${(value / 10000000).toFixed(2)} Cr`;
+            if (value >= 100000) return `₹${(value / 100000).toFixed(2)} L`;
+            if (value >= 1000) return `₹${(value / 1000).toFixed(2)} K`;
+            return `₹${value.toLocaleString('en-IN')}`;
+        }
+
+        function calculateRetirement() {
+            const inputs = getInputs();
+            const yearsToRetirement = inputs.retirementAge - inputs.currentAge;
+            const yearsInRetirement = inputs.lifeExpectancy - inputs.retirementAge;
+
+            // Calculate future value of existing investments
+            const fdFuture = inputs.currentFD * Math.pow(1 + inputs.fdRate / 100, yearsToRetirement);
+            const stocksFuture = inputs.currentStocks * Math.pow(1 + inputs.stockReturn / 100, yearsToRetirement);
+            const mfFuture = inputs.currentMF * Math.pow(1 + inputs.mfReturn / 100, yearsToRetirement);
+            const cryptoFuture = inputs.currentCrypto * Math.pow(1 + inputs.cryptoReturn / 100, yearsToRetirement);
+
+            // Calculate future value of monthly savings
+            let fdSavingsFuture = 0;
+            let stockSavingsFuture = 0;
+            let mfSavingsFuture = 0;
+            let monthlySavingsFuture = 0; // Separate monthly savings category
+            let sipFuture = 0;
+            let rdFuture = 0;
+
+            for (let year = 0; year < yearsToRetirement; year++) {
+                const currentSalary = inputs.monthlyIncome * Math.pow(1 + inputs.salaryIncrement / 100, year);
+                const currentRental = inputs.monthlyRental * Math.pow(1 + inputs.rentalIncrement / 100, year);
+                const totalIncome = currentSalary + currentRental;
+                const monthlySavings = totalIncome * (inputs.savingsRate / 100);
+                const annualSavings = monthlySavings * 12;
+                const yearsRemaining = yearsToRetirement - year;
+
+                // Monthly savings as separate category (grows at user-specified rate)
+                monthlySavingsFuture += annualSavings * Math.pow(1 + inputs.savingsReturn / 100, yearsRemaining);
+
+                // SIP calculation (grows at MF return rate)
+                const currentSIP = inputs.monthlySIP * Math.pow(1 + inputs.sipIncrement / 100, year);
+                const annualSIP = currentSIP * 12;
+                sipFuture += annualSIP * Math.pow(1 + inputs.mfReturn / 100, yearsRemaining);
+
+                // RD calculation (grows at RD rate)
+                const currentRD = inputs.monthlyRD * Math.pow(1 + inputs.rdIncrement / 100, year);
+                const annualRD = currentRD * 12;
+                rdFuture += annualRD * Math.pow(1 + inputs.rdRate / 100, yearsRemaining);
+            }
+
+            const totalAtRetirement = fdFuture + stocksFuture + mfFuture + cryptoFuture + monthlySavingsFuture + sipFuture + rdFuture;
+
+            // Calculate post-retirement expenses
+            const retirementMonthlyExpense = inputs.monthlyExpense * (inputs.postRetirementExpense / 100);
+            const inflatedExpense = retirementMonthlyExpense * Math.pow(1 + inputs.inflation / 100, yearsToRetirement);
+
+            // Calculate corpus required
+            const avgPostRetirementReturn = 8;
+            const realReturn = ((1 + avgPostRetirementReturn / 100) / (1 + inputs.inflation / 100)) - 1;
+            const corpusRequired = (inflatedExpense * 12) / realReturn;
+
+            const shortfall = corpusRequired - totalAtRetirement;
+            const isOnTrack = shortfall <= 0;
+
+            // Generate projection data
+            const projectionData = [];
+            const yearlyDetails = [];
+            let retirementCorpus = 0; // Track corpus through retirement
+
+            for (let age = inputs.currentAge; age <= inputs.lifeExpectancy; age++) {
+                const yearsFromNow = age - inputs.currentAge;
+                let corpus = 0;
+                let yearDetail = { age, year: new Date().getFullYear() + yearsFromNow };
+
+                if (age <= inputs.retirementAge) {
+                    const fdVal = inputs.currentFD * Math.pow(1 + inputs.fdRate / 100, yearsFromNow);
+                    const stockVal = inputs.currentStocks * Math.pow(1 + inputs.stockReturn / 100, yearsFromNow);
+                    const mfVal = inputs.currentMF * Math.pow(1 + inputs.mfReturn / 100, yearsFromNow);
+                    const cryptoVal = inputs.currentCrypto * Math.pow(1 + inputs.cryptoReturn / 100, yearsFromNow);
+
+                    let savingsVal = 0, sipVal = 0, rdVal = 0;
+                    
+                    for (let y = 0; y < yearsFromNow; y++) {
+                        const salary = inputs.monthlyIncome * Math.pow(1 + inputs.salaryIncrement / 100, y);
+                        const rental = inputs.monthlyRental * Math.pow(1 + inputs.rentalIncrement / 100, y);
+                        const totalIncome = salary + rental;
+                        const savings = totalIncome * (inputs.savingsRate / 100) * 12;
+                        const remaining = yearsFromNow - y;
+
+                        // Monthly savings as separate category (user-specified return rate)
+                        savingsVal += savings * Math.pow(1 + inputs.savingsReturn / 100, remaining);
+
+                        // SIP and RD calculations
+                        const sip = inputs.monthlySIP * Math.pow(1 + inputs.sipIncrement / 100, y) * 12;
+                        const rd = inputs.monthlyRD * Math.pow(1 + inputs.rdIncrement / 100, y) * 12;
+                        sipVal += sip * Math.pow(1 + inputs.mfReturn / 100, remaining);
+                        rdVal += rd * Math.pow(1 + inputs.rdRate / 100, remaining);
+                    }
+
+                    corpus = fdVal + stockVal + mfVal + cryptoVal + savingsVal + sipVal + rdVal;
+                    
+                    // Store corpus at retirement for use in retirement phase
+                    if (age === inputs.retirementAge) {
+                        retirementCorpus = corpus;
+                    }
+
+                    const currentSalary = inputs.monthlyIncome * Math.pow(1 + inputs.salaryIncrement / 100, yearsFromNow);
+                    const currentRental = inputs.monthlyRental * Math.pow(1 + inputs.rentalIncrement / 100, yearsFromNow);
+                    const totalIncome = currentSalary + currentRental;
+                    const currentSavings = totalIncome * (inputs.savingsRate / 100);
+                    const currentSIPAmount = inputs.monthlySIP * Math.pow(1 + inputs.sipIncrement / 100, yearsFromNow);
+                    const currentRDAmount = inputs.monthlyRD * Math.pow(1 + inputs.rdIncrement / 100, yearsFromNow);
+
+                    yearDetail = {
+                        ...yearDetail,
+                        phase: 'Accumulation',
+                        salary: currentSalary,
+                        rental: currentRental,
+                        totalIncome: totalIncome,
+                        monthlySavings: currentSavings,
+                        annualSavings: currentSavings * 12,
+                        sip: currentSIPAmount,
+                        rd: currentRDAmount,
+                        fd: fdVal,
+                        stocks: stockVal,
+                        mf: mfVal,
+                        crypto: cryptoVal,
+                        savings: savingsVal,
+                        sipTotal: sipVal,
+                        rdTotal: rdVal,
+                        totalCorpus: corpus,
+                        withdrawal: 0
+                    };
+                } else {
+                    // Retirement phase - calculate from previous year's corpus
+                    const yearsIntoRetirement = age - inputs.retirementAge;
+                    
+                    if (yearsIntoRetirement === 0) {
+                        // First year of retirement - start with retirement corpus
+                        corpus = retirementCorpus;
+                        // Grow the corpus for this year
+                        corpus = corpus * (1 + avgPostRetirementReturn / 100);
+                        // Subtract first year's withdrawal
+                        const annualWithdrawal = inflatedExpense * 12;
+                        corpus = corpus - annualWithdrawal;
+                        corpus = Math.max(0, corpus);
+                    } else {
+                        // Get previous year's corpus from projection data
+                        const previousYearCorpus = projectionData[projectionData.length - 1].corpus;
+                        
+                        // If previous year was already zero, stay at zero
+                        if (previousYearCorpus <= 0) {
+                            corpus = 0;
+                        } else {
+                            // Grow the corpus
+                            corpus = previousYearCorpus * (1 + avgPostRetirementReturn / 100);
+                            
+                            // Subtract annual withdrawal (adjusted for inflation)
+                            const annualWithdrawal = inflatedExpense * 12 * Math.pow(1 + inputs.inflation / 100, yearsIntoRetirement);
+                            corpus = corpus - annualWithdrawal;
+                            
+                            // Cannot be negative
+                            corpus = Math.max(0, corpus);
+                        }
+                    }
+
+                    yearDetail = {
+                        ...yearDetail,
+                        phase: 'Retirement',
+                        salary: 0,
+                        rental: inputs.monthlyRental * Math.pow(1 + inputs.rentalIncrement / 100, yearsToRetirement + yearsIntoRetirement),
+                        totalIncome: inputs.monthlyRental * Math.pow(1 + inputs.rentalIncrement / 100, yearsToRetirement + yearsIntoRetirement),
+                        monthlySavings: 0,
+                        annualSavings: 0,
+                        fd: 0,
+                        stocks: 0,
+                        mf: 0,
+                        crypto: 0,
+                        totalCorpus: corpus,
+                        withdrawal: inflatedExpense * 12 * Math.pow(1 + inputs.inflation / 100, yearsIntoRetirement)
+                    };
+                }
+
+                projectionData.push({ age, corpus: Math.round(corpus) });
+                yearlyDetails.push(yearDetail);
+            }
+
+            const currentMonthlySavings = (inputs.monthlyIncome + inputs.monthlyRental) * (inputs.savingsRate / 100);
+
+            // Calculate legacy value (remaining corpus at life expectancy)
+            const finalCorpusData = projectionData[projectionData.length - 1];
+            let legacyValue = Math.max(0, finalCorpusData ? finalCorpusData.corpus : 0);
+            
+            // Critical check: If corpus required is MORE than what you have at retirement,
+            // you CANNOT have a positive legacy - the money will run out
+            if (!isOnTrack && shortfall > 0) {
+                // Find the year when corpus reaches zero or becomes very small
+                let corpusDepletionAge = null;
+                for (let i = 0; i < projectionData.length; i++) {
+                    const data = projectionData[i];
+                    if (data.age > inputs.retirementAge && data.corpus <= 1000) {
+                        // Found depletion point (using 1000 as threshold for "effectively zero")
+                        corpusDepletionAge = data.age;
+                        legacyValue = 0;
+                        break;
+                    }
+                }
+                
+                // If we never found a depletion but there's a shortfall, 
+                // still set legacy to 0 as a safety measure
+                if (!corpusDepletionAge && legacyValue > 0) {
+                    legacyValue = 0;
+                }
+            }
+            
+            let corpusDepletionAge = null;
+            if (!isOnTrack) {
+                for (let i = 0; i < projectionData.length; i++) {
+                    if (projectionData[i].corpus <= 1000 && projectionData[i].age > inputs.retirementAge) {
+                        corpusDepletionAge = projectionData[i].age;
+                        break;
+                    }
+                }
+            }
+
+            calculatedResults = {
+                inputs,
+                totalAtRetirement,
+                corpusRequired,
+                shortfall,
+                isOnTrack,
+                monthlySavings: currentMonthlySavings,
+                totalMonthlyIncome: inputs.monthlyIncome + inputs.monthlyRental,
+                inflatedExpense,
+                projectionData,
+                yearlyDetails,
+                legacyValue,
+                corpusDepletionAge,
+                breakdown: {
+                    fd: fdFuture,
+                    stocks: stocksFuture,
+                    mf: mfFuture,
+                    crypto: cryptoFuture,
+                    monthlySavings: monthlySavingsFuture,
+                    sip: sipFuture,
+                    rd: rdFuture
+                }
+            };
+
+            displayResults();
+        }
+
+        function displayResults() {
+            const results = calculatedResults;
+            document.getElementById('resultsSection').style.display = 'block';
+
+            // Status Card
+            const statusCard = document.getElementById('statusCard');
+            statusCard.className = results.isOnTrack 
+                ? 'p-6 rounded-xl bg-green-50 border-2 border-green-300'
+                : 'p-6 rounded-xl bg-red-50 border-2 border-red-300';
+
+            // Metrics Content
+            const metricsContent = document.getElementById('metricsContent');
+            metricsContent.innerHTML = `
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-600">Total Monthly Income:</span>
+                    <span class="font-semibold text-lg">${formatCurrency(results.totalMonthlyIncome)}</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-600">Monthly Savings:</span>
+                    <span class="font-semibold text-lg">${formatCurrency(results.monthlySavings)}</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-600">Corpus at Retirement:</span>
+                    <span class="font-semibold text-lg text-green-600">${formatCurrency(results.totalAtRetirement)}</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-600">Corpus Required:</span>
+                    <span class="font-semibold text-lg text-blue-600">${formatCurrency(results.corpusRequired)}</span>
+                </div>
+                <div class="flex justify-between items-center pt-3 border-t-2">
+                    <span class="text-gray-600 font-semibold">Gap:</span>
+                    <span class="font-bold text-xl ${results.isOnTrack ? 'text-green-600' : 'text-red-600'}">
+                        ${results.isOnTrack ? 'Surplus: ' + formatCurrency(Math.abs(results.shortfall)) : 'Shortfall: ' + formatCurrency(Math.abs(results.shortfall))}
+                    </span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-600">Monthly Expense (at retirement):</span>
+                    <span class="font-semibold text-lg">${formatCurrency(results.inflatedExpense)}</span>
+                </div>
+                <div class="flex justify-between items-center pt-3 border-t-2">
+                    <span class="text-gray-600 font-semibold">Legacy Value (after life):</span>
+                    <span class="font-bold text-lg ${results.legacyValue > 0 ? 'text-purple-600' : 'text-red-600'}">${formatCurrency(results.legacyValue)}</span>
+                </div>
+                ${results.corpusDepletionAge ? `
+                <div class="mt-3 p-3 bg-red-50 border border-red-300 rounded-lg">
+                    <p class="text-sm text-red-700 font-semibold">
+                        ⚠️ Warning: Your corpus will be depleted by age ${results.corpusDepletionAge}
+                    </p>
+                    <p class="text-xs text-red-600 mt-1">
+                        You will run out of money ${results.inputs.lifeExpectancy - results.corpusDepletionAge} years before your life expectancy.
+                    </p>
+                </div>
+                ` : ''}
+            `;
+
+            // Status Message
+            const statusMessage = document.getElementById('statusMessage');
+            statusMessage.className = results.isOnTrack 
+                ? 'mt-4 p-4 rounded-lg bg-green-100'
+                : 'mt-4 p-4 rounded-lg bg-red-100';
+            statusMessage.innerHTML = `
+                <p class="text-center font-semibold ${results.isOnTrack ? 'text-green-700' : 'text-red-700'}">
+                    ${results.isOnTrack ? '✓ You are on track for retirement!' : '⚠ You need to increase your savings!'}
+                </p>
+            `;
+
+            // Chart Notes
+            const chartNotes = document.getElementById('chartNotes');
+            chartNotes.innerHTML = `
+                <p>• Accumulation phase: Age ${results.inputs.currentAge} to ${results.inputs.retirementAge}</p>
+                <p>• Withdrawal phase: Age ${results.inputs.retirementAge} to ${results.inputs.lifeExpectancy}</p>
+                <p>• Post-retirement return assumed at 8% with inflation adjustment</p>
+            `;
+
+            // Portfolio Legend
+            const portfolioLegend = document.getElementById('portfolioLegend');
+            const portfolioData = [
+                { name: 'Fixed Deposits', value: results.breakdown.fd, color: '#3b82f6' },
+                { name: 'Stocks & ETF', value: results.breakdown.stocks, color: '#10b981' },
+                { name: 'Mutual Funds', value: results.breakdown.mf, color: '#f59e0b' },
+                { name: 'Cryptocurrency', value: results.breakdown.crypto, color: '#ef4444' },
+                { name: 'Monthly Savings', value: results.breakdown.monthlySavings, color: '#8b5cf6' }
+            ];
+            
+            portfolioLegend.innerHTML = portfolioData.map(item => `
+                <div class="flex justify-between items-center">
+                    <div class="flex items-center gap-2">
+                        <div class="w-4 h-4 rounded" style="background-color: ${item.color}"></div>
+                        <span class="text-sm text-gray-600">${item.name}</span>
+                    </div>
+                    <span class="font-semibold">${formatCurrency(item.value)}</span>
+                </div>
+            `).join('') + `
+                <div class="mt-3 pt-3 border-t border-gray-300">
+                    <div class="text-xs text-gray-500 space-y-1">
+                        <div class="flex justify-between">
+                            <span>└ SIP Contribution:</span>
+                            <span class="font-medium">${formatCurrency(results.breakdown.sip)}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>└ RD Contribution:</span>
+                            <span class="font-medium">${formatCurrency(results.breakdown.rd)}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Draw Charts
+            drawPieChart(portfolioData);
+            drawLineChart(results.projectionData);
+
+            // Scroll to results
+            document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function drawPieChart(data) {
+            const ctx = document.getElementById('pieChart').getContext('2d');
+            
+            if (pieChartInstance) {
+                pieChartInstance.destroy();
+            }
+
+            pieChartInstance = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: data.map(d => d.name),
+                    datasets: [{
+                        data: data.map(d => d.value),
+                        backgroundColor: data.map(d => d.color),
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = formatCurrency(context.parsed);
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = ((context.parsed / total) * 100).toFixed(1);
+                                    return `${label}: ${value} (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function drawLineChart(data) {
+            const ctx = document.getElementById('lineChart').getContext('2d');
+            
+            if (lineChartInstance) {
+                lineChartInstance.destroy();
+            }
+
+            lineChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.map(d => d.age),
+                    datasets: [{
+                        label: 'Corpus (INR ₹)',
+                        data: data.map(d => d.corpus),
+                        borderColor: '#6366f1',
+                        backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            display: true
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return formatCurrency(context.parsed.y);
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Age'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Corpus (INR ₹)'
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return formatCurrency(value);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function downloadExcel() {
+            if (!calculatedResults) {
+                alert('Please calculate first before downloading the report.');
+                return;
+            }
+
+            const results = calculatedResults;
+            const inputs = results.inputs;
+
+            const summaryData = [
+                ['Shams- Retirement Planning Report'],
+                ['Name:', inputs.name || 'Not provided'],
+                ['Generated on:', new Date().toLocaleDateString()],
+                ['Currency: INR (₹)'],
+                [''],
+                ['Personal Information'],
+                ['Current Age', inputs.currentAge],
+                ['Retirement Age', inputs.retirementAge],
+                ['Life Expectancy', inputs.lifeExpectancy],
+                ['Years to Retirement', inputs.retirementAge - inputs.currentAge],
+                ['Years in Retirement', inputs.lifeExpectancy - inputs.retirementAge],
+                [''],
+                ['Current Investments (INR)'],
+                ['Fixed Deposits', inputs.currentFD],
+                ['Stocks & ETF', inputs.currentStocks],
+                ['Mutual Funds', inputs.currentMF],
+                ['Cryptocurrency', inputs.currentCrypto],
+                ['Total Current Investments', inputs.currentFD + inputs.currentStocks + inputs.currentMF + inputs.currentCrypto],
+                [''],
+                ['Monthly Investments (INR)'],
+                ['Monthly SIP', inputs.monthlySIP],
+                ['SIP Annual Increase (%)', inputs.sipIncrement],
+                ['Monthly RD', inputs.monthlyRD],
+                ['RD Annual Increase (%)', inputs.rdIncrement],
+                [''],
+                ['Monthly Finances (INR)'],
+                ['Monthly Business Income/Salary', inputs.monthlyIncome],
+                ['Monthly Rental Income', inputs.monthlyRental],
+                ['Total Monthly Income', inputs.monthlyIncome + inputs.monthlyRental],
+                ['Monthly Expense', inputs.monthlyExpense],
+                ['Savings Rate (%)', inputs.savingsRate],
+                ['Current Monthly Savings', results.monthlySavings],
+                ['Annual Salary Increment (%)', inputs.salaryIncrement],
+                ['Annual Rental Increment (%)', inputs.rentalIncrement],
+                [''],
+                ['Expected Returns (%)'],
+                ['FD Rate', inputs.fdRate],
+                ['RD Rate', inputs.rdRate],
+                ['Stock & ETF Return', inputs.stockReturn],
+                ['Mutual Fund Return', inputs.mfReturn],
+                ['Cryptocurrency Return', inputs.cryptoReturn],
+                ['Monthly Savings Return', inputs.savingsReturn],
+                ['Inflation Rate', inputs.inflation],
+                ['Post-Retirement Expense (%)', inputs.postRetirementExpense],
+                [''],
+                ['Retirement Analysis (INR)'],
+                ['Total Corpus at Retirement', results.totalAtRetirement],
+                ['Corpus Required', results.corpusRequired],
+                ['Surplus/Shortfall', results.isOnTrack ? results.totalAtRetirement - results.corpusRequired : -(results.corpusRequired - results.totalAtRetirement)],
+                ['Status', results.isOnTrack ? 'On Track' : 'Needs Attention'],
+                ['Monthly Expense at Retirement', results.inflatedExpense],
+                ['Legacy Value (at Life Expectancy)', results.legacyValue],
+                [''],
+                ['Portfolio Breakdown at Retirement (INR)'],
+                ['Fixed Deposits', results.breakdown.fd],
+                ['Stocks & ETF', results.breakdown.stocks],
+                ['Mutual Funds', results.breakdown.mf],
+                ['Cryptocurrency', results.breakdown.crypto],
+                ['Monthly Savings (from Income)', results.breakdown.monthlySavings],
+                ['', ''],
+                ['Additional Contributions'],
+                ['SIP Contribution', results.breakdown.sip],
+                ['RD Contribution', results.breakdown.rd]
+            ];
+
+            const projectionHeaders = ['Age', 'Year', 'Phase', 'Monthly Salary (INR)', 'Monthly Rental (INR)', 'Total Income (INR)', 'Monthly SIP (INR)', 'Monthly RD (INR)', 'Monthly Savings (INR)', 'Annual Savings (INR)', 'FD Value (INR)', 'Stocks Value (INR)', 'MF Value (INR)', 'Savings Value (INR)', 'SIP Total (INR)', 'RD Total (INR)', 'Total Corpus (INR)', 'Annual Withdrawal (INR)'];
+            const projectionData = results.yearlyDetails.map(detail => [
+                detail.age,
+                detail.year,
+                detail.phase,
+                detail.salary,
+                detail.rental,
+                detail.totalIncome,
+                detail.sip || 0,
+                detail.rd || 0,
+                detail.monthlySavings,
+                detail.annualSavings,
+                detail.fd,
+                detail.stocks,
+                detail.mf,
+                detail.savings || 0,
+                detail.sipTotal || 0,
+                detail.rdTotal || 0,
+                detail.totalCorpus,
+                detail.withdrawal
+            ]);
+
+            const wb = XLSX.utils.book_new();
+            const ws1 = XLSX.utils.aoa_to_sheet(summaryData);
+            const ws2 = XLSX.utils.aoa_to_sheet([projectionHeaders, ...projectionData]);
+
+            XLSX.utils.book_append_sheet(wb, ws1, 'Summary');
+            XLSX.utils.book_append_sheet(wb, ws2, 'Yearly Projection');
+
+            XLSX.writeFile(wb, `Retirement_Plan_${inputs.name || 'Report'}_${new Date().toISOString().split('T')[0]}.xlsx`);
+        }
+
+        function downloadPDF() {
+            if (!calculatedResults) {
+                alert('Please calculate first before downloading the report.');
+                return;
+            }
+
+            const results = calculatedResults;
+            const inputs = results.inputs;
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            let yPos = 20;
+
+            // Title
+            doc.setFontSize(20);
+            doc.setTextColor(79, 70, 229);
+            doc.text('Shams- Retirement Planning Report', 105, yPos, { align: 'center' });
+            yPos += 10;
+
+            doc.setFontSize(10);
+            doc.setTextColor(100, 100, 100);
+            doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 105, yPos, { align: 'center' });
+            yPos += 5;
+            doc.text(`Currency: INR (₹)`, 105, yPos, { align: 'center' });
+            yPos += 15;
+
+            // Name
+            if (inputs.name) {
+                doc.setFontSize(14);
+                doc.setTextColor(0, 0, 0);
+                doc.text(`Name: ${inputs.name}`, 20, yPos);
+                yPos += 10;
+            }
+
+            // Personal Information
+            doc.setFontSize(14);
+            doc.setTextColor(79, 70, 229);
+            doc.text('Personal Information', 20, yPos);
+            yPos += 8;
+
+            doc.setFontSize(10);
+            doc.setTextColor(0, 0, 0);
+            doc.text(`Current Age: ${inputs.currentAge} | Retirement Age: ${inputs.retirementAge} | Life Expectancy: ${inputs.lifeExpectancy}`, 20, yPos);
+            yPos += 6;
+            doc.text(`Years to Retirement: ${inputs.retirementAge - inputs.currentAge} | Years in Retirement: ${inputs.lifeExpectancy - inputs.retirementAge}`, 20, yPos);
+            yPos += 12;
+
+            // Current Investments
+            doc.setFontSize(14);
+            doc.setTextColor(79, 70, 229);
+            doc.text('Current Investments (INR)', 20, yPos);
+            yPos += 8;
+
+            doc.setFontSize(10);
+            doc.setTextColor(0, 0, 0);
+            doc.text(`Fixed Deposits: ${formatCurrency(inputs.currentFD)}`, 20, yPos);
+            yPos += 6;
+            doc.text(`Stocks & ETF: ${formatCurrency(inputs.currentStocks)}`, 20, yPos);
+            yPos += 6;
+            doc.text(`Mutual Funds: ${formatCurrency(inputs.currentMF)}`, 20, yPos);
+            yPos += 6;
+            doc.text(`Cryptocurrency: ${formatCurrency(inputs.currentCrypto)}`, 20, yPos);
+            yPos += 6;
+            doc.text(`Total: ${formatCurrency(inputs.currentFD + inputs.currentStocks + inputs.currentMF + inputs.currentCrypto)}`, 20, yPos);
+            yPos += 12;
+
+            // Monthly Investments
+            doc.setFontSize(14);
+            doc.setTextColor(79, 70, 229);
+            doc.text('Monthly Investments (INR)', 20, yPos);
+            yPos += 8;
+
+            doc.setFontSize(10);
+            doc.setTextColor(0, 0, 0);
+            doc.text(`Monthly SIP: ${formatCurrency(inputs.monthlySIP)} | Annual Increase: ${inputs.sipIncrement}%`, 20, yPos);
+            yPos += 6;
+            doc.text(`Monthly RD: ${formatCurrency(inputs.monthlyRD)} | Annual Increase: ${inputs.rdIncrement}%`, 20, yPos);
+            yPos += 12;
+
+            // Monthly Finances
+            doc.setFontSize(14);
+            doc.setTextColor(79, 70, 229);
+            doc.text('Monthly Finances (INR)', 20, yPos);
+            yPos += 8;
+
+            doc.setFontSize(10);
+            doc.setTextColor(0, 0, 0);
+            doc.text(`Monthly Business Income/Salary: ${formatCurrency(inputs.monthlyIncome)}`, 20, yPos);
+            yPos += 6;
+            doc.text(`Monthly Rental Income: ${formatCurrency(inputs.monthlyRental)}`, 20, yPos);
+            yPos += 6;
+            doc.text(`Total Monthly Income: ${formatCurrency(inputs.monthlyIncome + inputs.monthlyRental)}`, 20, yPos);
+            yPos += 6;
+            doc.text(`Monthly Expense: ${formatCurrency(inputs.monthlyExpense)}`, 20, yPos);
+            yPos += 6;
+            doc.text(`Savings Rate: ${inputs.savingsRate}% | Monthly Savings: ${formatCurrency(results.monthlySavings)}`, 20, yPos);
+            yPos += 6;
+            doc.text(`Annual Salary Increment: ${inputs.salaryIncrement}% | Annual Rental Increment: ${inputs.rentalIncrement}%`, 20, yPos);
+            yPos += 12;
+
+            // Expected Returns
+            doc.setFontSize(14);
+            doc.setTextColor(79, 70, 229);
+            doc.text('Expected Returns', 20, yPos);
+            yPos += 8;
+
+            doc.setFontSize(10);
+            doc.setTextColor(0, 0, 0);
+            doc.text(`FD: ${inputs.fdRate}% | RD: ${inputs.rdRate}% | Stocks & ETF: ${inputs.stockReturn}% | MF: ${inputs.mfReturn}%`, 20, yPos);
+            yPos += 6;
+            doc.text(`Crypto: ${inputs.cryptoReturn}% | Monthly Savings: ${inputs.savingsReturn}% | Inflation: ${inputs.inflation}%`, 20, yPos);
+            yPos += 12;
+
+            // Retirement Analysis
+            doc.setFontSize(14);
+            doc.setTextColor(79, 70, 229);
+            doc.text('Retirement Analysis (INR)', 20, yPos);
+            yPos += 8;
+
+            doc.setFontSize(10);
+            doc.setTextColor(0, 0, 0);
+            doc.text(`Total Corpus at Retirement: ${formatCurrency(results.totalAtRetirement)}`, 20, yPos);
+            yPos += 6;
+            doc.text(`Corpus Required: ${formatCurrency(results.corpusRequired)}`, 20, yPos);
+            yPos += 6;
+
+            if (results.isOnTrack) {
+                doc.setTextColor(34, 197, 94);
+                doc.text(`Status: ON TRACK - Surplus of ${formatCurrency(Math.abs(results.shortfall))}`, 20, yPos);
+            } else {
+                doc.setTextColor(239, 68, 68);
+                doc.text(`Status: NEEDS ATTENTION - Shortfall of ${formatCurrency(Math.abs(results.shortfall))}`, 20, yPos);
+            }
+            yPos += 6;
+
+            doc.setTextColor(0, 0, 0);
+            doc.text(`Monthly Expense at Retirement (Inflation Adjusted): ${formatCurrency(results.inflatedExpense)}`, 20, yPos);
+            yPos += 6;
+            doc.setTextColor(138, 92, 246);
+            doc.text(`Legacy Value (at Life Expectancy): ${formatCurrency(results.legacyValue)}`, 20, yPos);
+            yPos += 12;
+
+            // Portfolio Breakdown
+            doc.setFontSize(14);
+            doc.setTextColor(79, 70, 229);
+            doc.text('Portfolio at Retirement (INR)', 20, yPos);
+            yPos += 8;
+
+            doc.setFontSize(10);
+            doc.setTextColor(0, 0, 0);
+            doc.text(`Fixed Deposits: ${formatCurrency(results.breakdown.fd)} (${((results.breakdown.fd/results.totalAtRetirement)*100).toFixed(1)}%)`, 20, yPos);
+            yPos += 6;
+            doc.text(`Stocks & ETF: ${formatCurrency(results.breakdown.stocks)} (${((results.breakdown.stocks/results.totalAtRetirement)*100).toFixed(1)}%)`, 20, yPos);
+            yPos += 6;
+            doc.text(`Mutual Funds: ${formatCurrency(results.breakdown.mf)} (${((results.breakdown.mf/results.totalAtRetirement)*100).toFixed(1)}%)`, 20, yPos);
+            yPos += 6;
+            doc.text(`Cryptocurrency: ${formatCurrency(results.breakdown.crypto)} (${((results.breakdown.crypto/results.totalAtRetirement)*100).toFixed(1)}%)`, 20, yPos);
+            yPos += 6;
+            doc.text(`Monthly Savings (from Income): ${formatCurrency(results.breakdown.monthlySavings)} (${((results.breakdown.monthlySavings/results.totalAtRetirement)*100).toFixed(1)}%)`, 20, yPos);
+            yPos += 10;
+            
+            doc.setFontSize(9);
+            doc.setTextColor(100, 100, 100);
+            doc.text(`Additional Contributions:`, 20, yPos);
+            yPos += 5;
+            doc.text(`  SIP Contribution: ${formatCurrency(results.breakdown.sip)}`, 25, yPos);
+            yPos += 5;
+            doc.text(`  RD Contribution: ${formatCurrency(results.breakdown.rd)}`, 25, yPos);
+            yPos += 12;
+
+            // Add new page for recommendations
+            doc.addPage();
+            yPos = 20;
+
+            doc.setFontSize(16);
+            doc.setTextColor(79, 70, 229);
+            doc.text('Recommendations', 20, yPos);
+            yPos += 10;
+
+            doc.setFontSize(10);
+            doc.setTextColor(0, 0, 0);
+            const recommendations = [
+                '• Start early to benefit from compound interest over time',
+                '• Diversify your portfolio across FDs, stocks, and mutual funds',
+                '• Review and rebalance your investments at least annually',
+                '• Consider inflation when planning for long-term expenses',
+                '• Build an emergency fund equivalent to 6-12 months of expenses',
+                '• Increase savings rate when you receive salary increments',
+                '• Consider tax-efficient investment options',
+                '• Consult a certified financial advisor for personalized advice'
+            ];
+
+            recommendations.forEach(rec => {
+                doc.text(rec, 20, yPos);
+                yPos += 7;
+            });
+
+            doc.save(`Retirement_Plan_${inputs.name || 'Report'}_${new Date().toISOString().split('T')[0]}.pdf`);
+        }
+
+        // Excel Import Functionality
+        document.getElementById('excelImport').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    
+                    // Read from Summary sheet
+                    const summarySheet = workbook.Sheets['Summary'];
+                    if (!summarySheet) {
+                        alert('Could not find Summary sheet in the Excel file.');
+                        return;
+                    }
+
+                    // Helper function to get cell value
+                    function getCellValue(ref) {
+                        const cell = summarySheet[ref];
+                        return cell ? cell.v : null;
+                    }
+
+                    // Import data from known cells (based on our export format)
+                    const importedData = {
+                        name: getCellValue('B2'),
+                        currentAge: getCellValue('B7'),
+                        retirementAge: getCellValue('B8'),
+                        lifeExpectancy: getCellValue('B9'),
+                        currentFD: getCellValue('B14'),
+                        currentStocks: getCellValue('B15'),
+                        currentMF: getCellValue('B16'),
+                        monthlySIP: getCellValue('B20'),
+                        monthlyRD: getCellValue('B22'),
+                        sipIncrement: getCellValue('B21'),
+                        rdIncrement: getCellValue('B23'),
+                        monthlyIncome: getCellValue('B26'),
+                        monthlyRental: getCellValue('B27'),
+                        monthlyExpense: getCellValue('B29'),
+                        savingsRate: getCellValue('B30'),
+                        salaryIncrement: getCellValue('B32'),
+                        rentalIncrement: getCellValue('B33'),
+                        fdRate: getCellValue('B36'),
+                        rdRate: getCellValue('B37'),
+                        stockReturn: getCellValue('B38'),
+                        mfReturn: getCellValue('B39'),
+                        savingsReturn: getCellValue('B40'),
+                        inflation: getCellValue('B41'),
+                        postRetirementExpense: getCellValue('B42')
+                    };
+
+                    // Set values in the form
+                    if (importedData.name) document.getElementById('name').value = importedData.name;
+                    if (importedData.currentAge) document.getElementById('currentAge').value = importedData.currentAge;
+                    if (importedData.retirementAge) document.getElementById('retirementAge').value = importedData.retirementAge;
+                    if (importedData.lifeExpectancy) document.getElementById('lifeExpectancy').value = importedData.lifeExpectancy;
+                    if (importedData.currentFD) document.getElementById('currentFD').value = importedData.currentFD;
+                    if (importedData.currentStocks) document.getElementById('currentStocks').value = importedData.currentStocks;
+                    if (importedData.currentMF) document.getElementById('currentMF').value = importedData.currentMF;
+                    if (importedData.monthlySIP) document.getElementById('monthlySIP').value = importedData.monthlySIP;
+                    if (importedData.monthlyRD) document.getElementById('monthlyRD').value = importedData.monthlyRD;
+                    if (importedData.sipIncrement) document.getElementById('sipIncrement').value = importedData.sipIncrement;
+                    if (importedData.rdIncrement) document.getElementById('rdIncrement').value = importedData.rdIncrement;
+                    if (importedData.monthlyIncome) document.getElementById('monthlyIncome').value = importedData.monthlyIncome;
+                    if (importedData.monthlyRental) document.getElementById('monthlyRental').value = importedData.monthlyRental;
+                    if (importedData.monthlyExpense) document.getElementById('monthlyExpense').value = importedData.monthlyExpense;
+                    if (importedData.savingsRate) document.getElementById('savingsRate').value = importedData.savingsRate;
+                    if (importedData.salaryIncrement) document.getElementById('salaryIncrement').value = importedData.salaryIncrement;
+                    if (importedData.rentalIncrement) document.getElementById('rentalIncrement').value = importedData.rentalIncrement;
+                    if (importedData.fdRate) document.getElementById('fdRate').value = importedData.fdRate;
+                    if (importedData.rdRate) document.getElementById('rdRate').value = importedData.rdRate;
+                    if (importedData.stockReturn) document.getElementById('stockReturn').value = importedData.stockReturn;
+                    if (importedData.mfReturn) document.getElementById('mfReturn').value = importedData.mfReturn;
+                    if (importedData.savingsReturn) document.getElementById('savingsReturn').value = importedData.savingsReturn;
+                    if (importedData.inflation) document.getElementById('inflation').value = importedData.inflation;
+                    if (importedData.postRetirementExpense) document.getElementById('postRetirementExpense').value = importedData.postRetirementExpense;
+                    
+                    alert('Data imported successfully! Click "Calculate Retirement Plan" to see results.');
+                    
+                    // Reset file input
+                    e.target.value = '';
+                } catch (error) {
+                    console.error('Import error:', error);
+                    alert('Error importing Excel file. Please make sure it\'s a valid retirement plan export.');
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        });
+
+        // Clear All Data Function
+        function clearAllData() {
+            if (confirm('Are you sure you want to clear all data? This action cannot be undone.')) {
+                // Clear all input fields to default values
+                document.getElementById('name').value = '';
+                document.getElementById('job').value = '';
+                document.getElementById('currentAge').value = '45';
+                document.getElementById('retirementAge').value = '60';
+                document.getElementById('lifeExpectancy').value = '75';
+                document.getElementById('currentFD').value = '500000';
+                document.getElementById('currentStocks').value = '300000';
+                document.getElementById('currentMF').value = '400000';
+                document.getElementById('currentCrypto').value = '0';
+                document.getElementById('monthlySIP').value = '0';
+                document.getElementById('monthlyRD').value = '0';
+                document.getElementById('sipIncrement').value = '10';
+                document.getElementById('rdIncrement').value = '5';
+                document.getElementById('monthlyIncome').value = '80000';
+                document.getElementById('monthlyRental').value = '0';
+                document.getElementById('monthlyExpense').value = '50000';
+                document.getElementById('rdRate').value = '7';
+                document.getElementById('stockReturn').value = '12';
+                document.getElementById('mfReturn').value = '14';
+                document.getElementById('cryptoReturn').value = '15';
+                document.getElementById('savingsReturn').value = '8';
+                document.getElementById('inflation').value = '6';
+                document.getElementById('postRetirementExpense').value = '70';
+                document.getElementById('salaryIncrement').value = '8';
+                document.getElementById('rentalIncrement').value = '5';
+                document.getElementById('expenseIncrement').value = '6';
+                
+                // Hide results section
+                document.getElementById('resultsSection').style.display = 'none';
+                
+                // Scroll to top
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                
+                alert('All data has been reset to default values.');
+            }
+        }
+    </script>
+</body>
+</html>
